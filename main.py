@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from typing import Union
 from loguru import logger
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, Union
 from datetime import datetime as dt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -47,7 +47,7 @@ class RetrieveData:
         self.__ticker_details = None
         self.__ticker_curr_price: float = 0.0
         self.__expr_dates: tuple[str, ...] = ()
-        self.__expiry_date: dt.date  = ""
+        self.__expiry_date: dt.date = ""
         self.__days_to_expr: int = 0
         self.__option_chain: dataclass() = None
         self.__call_option_df: pd.DataFrame() = None
@@ -100,7 +100,7 @@ class RetrieveData:
 
     @staticmethod
     def __is_valid_ticker(__ticker: str) -> bool:
-        """Checks whether ticker (__ticker) exists and is fully capitalise
+        """Checks whether ticker (__ticker) exists and is fully capitalised
 
         Parameters:
             @param __ticker: Contains the ticker we want to observe
@@ -108,9 +108,9 @@ class RetrieveData:
 
         Return:
             @return:
-                True: Ticker is given and is fully capitalise.
-                False: Ticker is either not given or is not fully capitalise.
-            @rtype: bool
+                True: Ticker is given and is fully capitalised.
+                False: Ticker is either not given or is not fully capitalised.
+            @rtype: Boolean
         """
         if not __ticker:
             logger.error(f"Ticker symbol is missing.")
@@ -130,11 +130,12 @@ class RetrieveData:
                 False: Unable to retrieve ticker details.
             @rtype: bool
         """
-        __ticker_details: Union[yf.ticker.Ticker, None] = yf.Ticker(self.__ticker)
+        __ticker_details = yf.Ticker(self.__ticker)
         if not __ticker_details:
             logger.error(f"Unable to retrieve details regarding {self.__ticker}.")
             return False
         self.__ticker_details: yf.ticker.Ticker = __ticker_details
+        logger.info(self.__ticker_details)
         self.__ticker_curr_price: float = self.__ticker_details.info["regularMarketPrice"]
         return True
 
@@ -181,9 +182,9 @@ class RetrieveData:
 
         Returns
             @return:
-                True: Option's expiry date is within days threshold.
-                False: Option's expiry date is not within days threshold.
-            @rtype: bool
+                True: Option's expiry date is within a day threshold.
+                False: Option's expiry date is not within a day threshold.
+            @rtype: Bool
         """
         __days_to_expr: int = (self.__expiry_date - self.__today_date).days
         if __days_to_expr < self.__DAYS_MIN or __days_to_expr > self.__DAYS_MAX:
@@ -199,10 +200,10 @@ class RetrieveData:
         Returns
            @return:
                True: Able to retrieve the option chain of all the products that have the common expiry date.
-               False: Unable to retrieve option chain.
-           @rtype: bool
+               False: Unable to retrieve the option-chain.
+           @rtype: Boolean
         """
-        __expiry_date: str = self.__expiry_date.strftime("%Y-%m-%d") # Covert back to <str> type
+        __expiry_date: str = self.__expiry_date.strftime("%Y-%m-%d")  # Covert back to <str> type
         __option_chain: dataclass() = self.__ticker_details.option_chain(__expiry_date)
         if not __option_chain:
             logger.error(f"Unable to retrieve option chain from {self.__expiry_date}")
@@ -216,7 +217,7 @@ class RetrieveData:
 
         Returns
            @return:
-               True: Able to retrieve the call option of option chain.
+               True: Able to retrieve the call option of the option chain.
                False: Unable to retrieve call option
            @rtype: bool
         """
@@ -233,7 +234,7 @@ class RetrieveData:
 
         Returns
            @return:
-               True: Able to retrieve the put option of option chain.
+               True: Able to retrieve the put option of the option chain.
                False: Unable to retrieve put option
            @rtype: bool
         """
@@ -332,8 +333,8 @@ class RetrieveData:
         Returns the approved call and put options.
         Return:
             @return:
-                self.__appr_call_option: Contains a list of all the individual call option approved within boundaries.
-                self.__appr_put_option: Contains a list of all the individual call option approved within boundaries.
+                self.__appr_call_option: Contains a list of all the individual call options approved within boundaries.
+                self.__appr_put_option: Contains a list of all the individual call options approved within boundaries.
             @rtype:
                 sef.__appr_call_option: list[dataclass()]
                 sef.__appr_put_option: list[dataclass()]
@@ -355,13 +356,6 @@ class BuildGraph:
             self.__strike_grid - A 2D array that corresponds to all possible combinations of the input array
             self.__expr_grid - A 2D array that corresponds to all possible combinations of the input array
             self.__implied_vol_grid - A 2D array that corresponds to all possible combinations of the input array
-
-            self.__COLOR_MAP -
-            self.__METHOD -
-            self.__PROJECTION -
-            self.__SAMPLES -
-            self.__FIGURE_SIZE -
-            self.__W_SPACE -
         """
 
         self.__appr_call_options: list[dataclass()] = []
@@ -371,7 +365,7 @@ class BuildGraph:
         self.__vol_curve_ax = None
         self.__implied_vol: np.array = None
         self.__strike_price: np.array = None
-        self.__days_to_expr: np.array  = None
+        self.__days_to_expr: np.array = None
         self.__strike_space: np.linspace = []
         self.__strike_grid: list = []
         self.__expr_grid: list = []
@@ -416,8 +410,8 @@ class BuildGraph:
 
                 Return:
                     @return:
-                        True: Ticker is given and is fully capitalise.
-                        False: Ticker is either not given or is not fully capitalise.
+                        True: Ticker is given and is fully capitalised.
+                        False: Ticker is either not given or is not fully capitalised.
                     @rtype: bool
                 """
         if not __ticker:
@@ -496,9 +490,9 @@ class BuildGraph:
         https://numpy.org/doc/2.1/reference/generated/numpy.linspace.html
         """
         self.__strike_space: np.linspace = np.linspace(min(self.__strike_price),
-                                                  max(self.__strike_price),
-                                                  self.__SAMPLES,
-                                                  dtype=np.float32)
+                                                       max(self.__strike_price),
+                                                       self.__SAMPLES,
+                                                       dtype=np.float32)
 
     def __create_expr_space(self) -> None:
         """
@@ -519,7 +513,7 @@ class BuildGraph:
 
     def __create_implied_vol_grid(self) -> None:
         """
-        Create an interpolated scattered data onto a grid, providing values at new coordinates based on known data points.
+        Create interpolated scattered data onto a grid, providing values at new coordinates based on known data points.
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html
         """
         self.__implied_vol_grid = griddata(
@@ -542,7 +536,7 @@ class BuildGraph:
 
     def __add_current_price(self) -> None:
         """
-        Calculates and plots the graph require to display the current price of the underlying as a flat plane
+        Calculates and plots the graph requires displaying the current price of the underlying as a flat plane
         """
         __x: np = np.array([self.__ticker_price, self.__ticker_price])
         __y: np = np.array([min(self.__days_to_expr), max(self.__days_to_expr)])
@@ -568,7 +562,7 @@ class BuildGraph:
 
     def __add_put_options(self) -> None:
         """
-        Plots all the puts options into the volatility surface
+        Plots all the put options into the volatility surface
         """
         for __option in self.__appr_put_options:
             self.__vol_curve_ax.scatter(__option.strike_price,
